@@ -13,13 +13,11 @@ HINSTANCE hInstance;
 HWND hWnd;
 HWAVEIN hWaveIn;
 
-// Create the tray icon
 NOTIFYICONDATA nid;
 static HICON hIcon1;
 static HICON hIcon2;
 static bool isIcon1 = true;
 
-// Const microphone
 IMMDeviceEnumerator* enumerator = nullptr;
 IMMDevice* defaultDevice = nullptr;
 IAudioEndpointVolume* endpointVolume = nullptr;
@@ -27,10 +25,8 @@ BOOL muteState;
 
 
 void initializeMicComLib() {
-    // Initialize COM library
     CoInitialize(NULL);
 
-    // Create COM objects
     CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (LPVOID*)&enumerator);
     enumerator->GetDefaultAudioEndpoint(eCapture, eConsole, &defaultDevice);
     defaultDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (LPVOID*)&endpointVolume);
@@ -45,7 +41,6 @@ void showMuteIcon() {
     nid.hIcon = hIcon2;
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 
-    // Display a debug message
     OutputDebugString("Show unmute microphone\n");
 }
 
@@ -58,7 +53,6 @@ void showUnmuteIcon() {
     nid.hIcon = hIcon1;
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 
-    // Display a debug message
     OutputDebugString("Show mute microphone\n");
 }
 
@@ -76,7 +70,7 @@ void toggleMicrophoneMute()
 
     if (muteState) {
         showUnmuteIcon();
-        endpointVolume->SetMasterVolumeLevelScalar(0.98, NULL);
+        endpointVolume->SetMasterVolumeLevelScalar(0.98f, NULL);
     }
     else {
         showMuteIcon();
@@ -87,8 +81,6 @@ void toggleMicrophoneMute()
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    //OutputDebugString(("key pressed " + std::to_string(wParam) + "\n ").c_str());
-
     switch (uMsg)
     {
     case WM_HOTKEY:
@@ -102,7 +94,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         switch (lParam)
         {
         case WM_RBUTTONUP:
-            // Show a context menu
         {
             POINT pt;
             GetCursorPos(&pt);
@@ -142,29 +133,23 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    // Store the instance handle
     ::hInstance = hInstance;
 
     initializeMicComLib();
 
-    // Register the main window class
     WNDCLASS wc = {};
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = "IconChangeWindowClass";
     RegisterClass(&wc);
 
-    // Create a hidden window
     hWnd = CreateWindowEx(0, wc.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
 
-
-    // Load the icons
     hIcon1 = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
     hIcon2 = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON2));
 
     getMuteState();
 
-    // Create the tray icon
     nid.cbSize = sizeof(nid);
     nid.hWnd = hWnd;
     nid.uID = 1;
@@ -173,14 +158,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     nid.hIcon = !muteState ? hIcon1 : hIcon2;
     Shell_NotifyIcon(NIM_ADD, &nid);
 
-    // Register the hotkey
     BOOL registered = RegisterHotKey(hWnd, 1, MOD_SHIFT, VK_TAB);
     if (!registered)
     {
         MessageBox(hWnd, "Failed to register hotkey!", "Error", MB_OK | MB_ICONERROR);
     }
 
-    // Message loop
     MSG msg = {};
     while (GetMessage(&msg, NULL, 0, 0))
     {
@@ -188,7 +171,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         DispatchMessage(&msg);
     }
 
-    // Remove the tray icon
     OutputDebugString("Remove \n");
     Shell_NotifyIcon(NIM_DELETE, &nid);
 
