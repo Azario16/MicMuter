@@ -22,3 +22,9 @@ shift+tab
 * Таймер на автоматическое отключение микрофона
 
 Сборка в VS2019
+
+# cmake build 
+
+* cd build
+* cmake ..
+* cmake --build .
